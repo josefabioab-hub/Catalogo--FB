@@ -1,70 +1,296 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b4d91">
-<title>FB Embalagens — Catálogo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo Online</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6f9;color:#222}
-header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 12px}
-.top{max-width:1100px;margin:auto;display:flex;align-items:center;gap:12px}
-.logo{font-weight:800;color:#0b4d91;font-size:20px}
-.search{flex:1;padding:12px 14px;border:1px solid #d8dee8;border-radius:12px;font-size:16px;outline:none}
-nav{max-width:1100px;margin:10px auto 0;display:flex;gap:8px;overflow:auto;padding-bottom:10px}
-nav button{white-space:nowrap;border:1px solid #d8dee8;background:#fff;border-radius:999px;padding:9px 13px;cursor:pointer}
-nav button.active{background:#0b4d91;color:#fff;border-color:#0b4d91}
-main{max-width:1100px;margin:18px auto;padding:0 12px}
-.title{font-size:22px;font-weight:700;color:#0b4d91;margin:10px 0 14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:9px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.card img{width:100%;height:165px;object-fit:contain;background:#fafafa;border-radius:10px;cursor:zoom-in}
-.name{font-weight:700;font-size:14px;margin:9px 3px 2px;line-height:1.25}
-.cat{font-size:12px;color:#777;margin:0 3px 3px}
-.empty{padding:40px;text-align:center;color:#777}
-#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:20;touch-action:none}
-#big{position:absolute;left:50%;top:50%;max-width:92vw;max-height:82vh;transform:translate(-50%,-50%);object-fit:contain;touch-action:none;user-select:none}
-.close{position:absolute;right:14px;top:5px;color:#fff;font-size:42px;z-index:30;line-height:1;cursor:pointer}
-.controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:30}
-.controls button{width:52px;height:46px;border:0;border-radius:24px;font-size:22px}
-.hint{position:absolute;bottom:75px;left:0;right:0;text-align:center;color:#fff;font-size:12px;opacity:.8}
-@media(max-width:600px){.top{flex-wrap:wrap}.search{min-width:0}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card img{height:145px}.name{font-size:13px}}
+  :root{
+    --bg:#faf9f7; --card:#ffffff; --ink:#1c1b19; --muted:#6b6862;
+    --accent:#b5651d; --accent-dark:#8f4e15; --line:#e7e4de; --danger:#b3413a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink);
+  }
+  header{
+    padding:28px 20px 18px; text-align:center; border-bottom:1px solid var(--line);
+    background:var(--card);
+  }
+  header h1{margin:0 0 4px; font-size:1.6rem; letter-spacing:.5px;}
+  header p{margin:0; color:var(--muted); font-size:.9rem;}
+
+  .topbar{
+    display:flex; justify-content:center; gap:10px; padding:14px 20px;
+  }
+  button{
+    cursor:pointer; border:none; border-radius:8px; padding:9px 16px;
+    font-size:.9rem; font-weight:600; transition:.15s;
+  }
+  .btn-primary{background:var(--accent); color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-ghost{background:transparent; color:var(--accent); border:1px solid var(--accent);}
+  .btn-ghost:hover{background:#f3e6d8;}
+  .btn-danger{background:var(--danger); color:#fff;}
+
+  #grid{
+    display:grid; gap:18px; padding:10px 20px 60px;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    max-width:1100px; margin:0 auto;
+  }
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .card img{width:100%; height:170px; object-fit:cover; background:#eee;}
+  .card-body{padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:6px;}
+  .card-body h3{margin:0; font-size:1rem;}
+  .card-body .preco{color:var(--accent-dark); font-weight:700;}
+  .card-body p{margin:0; font-size:.82rem; color:var(--muted); flex:1;}
+  .card-actions{display:flex; gap:8px; padding:0 14px 12px;}
+  .card-actions button{flex:1; font-size:.78rem; padding:6px 8px;}
+
+  #vazio{text-align:center; color:var(--muted); padding:40px; grid-column:1/-1;}
+
+  /* Modal login */
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:#fff; border-radius:14px; padding:26px; width:100%; max-width:340px;
+  }
+  .modal h2{margin-top:0; font-size:1.1rem;}
+  .modal input{
+    width:100%; padding:10px; margin:8px 0; border:1px solid var(--line);
+    border-radius:8px; font-size:.9rem;
+  }
+  .modal .row{display:flex; gap:8px; margin-top:12px;}
+  .modal .row button{flex:1;}
+  #loginErro{color:var(--danger); font-size:.8rem; min-height:16px;}
+
+  /* Modal produto */
+  .modal-produto{max-width:420px;}
+  .modal-produto textarea{
+    width:100%; padding:10px; border:1px solid var(--line); border-radius:8px;
+    font-family:inherit; font-size:.9rem; resize:vertical; min-height:70px; margin:8px 0;
+  }
+  label{font-size:.78rem; color:var(--muted); display:block; margin-top:8px;}
+
+  #fabNovo{
+    position:fixed; bottom:24px; right:24px; border-radius:50px; padding:14px 22px;
+    box-shadow:0 4px 14px rgba(0,0,0,.2); display:none; z-index:20;
+  }
+  .status{text-align:center; color:var(--muted); font-size:.85rem; padding:16px;}
 </style>
 </head>
 <body>
+
 <header>
-<div class="top"><div class="logo">FB Embalagens</div><input id="search" class="search" placeholder="🔍 Pesquisar produto..."></div>
-<nav id="cats"></nav>
+  <h1>Catálogo Online</h1>
+  <p>Confira nossos produtos</p>
 </header>
-<main><div class="title">Catálogo</div><div id="grid" class="grid"></div><div id="empty" class="empty" style="display:none">Nenhum produto encontrado.</div></main>
 
-<div id="modal"><span class="close" onclick="closeModal()">×</span><img id="big"><div class="hint">Arraste para movimentar • use dois dedos para zoom</div><div class="controls"><button onclick="changeZoom(-.2)">−</button><button onclick="resetZoom()">⟳</button><button onclick="changeZoom(.2)">+</button></div></div>
+<div class="topbar">
+  <button id="btnLogin" class="btn-ghost">Entrar (admin)</button>
+  <button id="btnLogout" class="btn-ghost" style="display:none;">Sair</button>
+</div>
 
-<script>
-const products = [{"name": "Saco plástico transparente 28x40cm", "cat": "Descartáveis/EPI", "src": "images/produto_001.jpg"}, {"name": "Prato descartável Fonplast (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_002.jpg"}, {"name": "Talher descartável cristal - Prafesta", "cat": "Descartáveis/EPI", "src": "images/produto_003.jpg"}, {"name": "Copo descartável 15cm - caixa 10000un", "cat": "Descartáveis/EPI", "src": "images/produto_004.jpg"}, {"name": "Kit copo descartável com canudo e colher", "cat": "Descartáveis/EPI", "src": "images/produto_005.jpg"}, {"name": "Pote plástico transparente com tampa", "cat": "Descartáveis/EPI", "src": "images/produto_006.jpg"}, {"name": "Filme PVC transparente G-Util 30m", "cat": "Descartáveis/EPI", "src": "images/produto_007.jpg"}, {"name": "Filme de PVC 30m - Isofilmes", "cat": "Papéis e Filmes", "src": "images/produto_008.jpg"}, {"name": "Papel alumínio Boreda", "cat": "Descartáveis/EPI", "src": "images/produto_009.jpg"}, {"name": "Folha de alumínio Wyda 44cm", "cat": "Descartáveis/EPI", "src": "images/produto_010.jpg"}, {"name": "Saco plástico transparente 17x35cm", "cat": "Descartáveis/EPI", "src": "images/produto_011.jpg"}, {"name": "Bobina plástica picotada", "cat": "Descartáveis/EPI", "src": "images/produto_012.jpg"}, {"name": "Luva de látex com pó Inoven (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_013.jpg"}, {"name": "Bobina plástica 25x35cm - capacidade 2kg", "cat": "Descartáveis/EPI", "src": "images/produto_014.jpg"}, {"name": "Pote térmico Kit (25un)", "cat": "Descartáveis/EPI", "src": "images/produto_015.jpg"}, {"name": "Bobina plástica 20x30cm - capacidade 1kg", "cat": "Descartáveis/EPI", "src": "images/produto_016.jpg"}, {"name": "Saco plástico transparente 30x40cm", "cat": "Descartáveis/EPI", "src": "images/produto_017.jpg"}, {"name": "Filme PVC transparente G-Util 15m", "cat": "Descartáveis/EPI", "src": "images/produto_019.jpg"}, {"name": "Colher descartável Prafesta (kit refeição 50un)", "cat": "Descartáveis/EPI", "src": "images/produto_020.jpg"}, {"name": "Álcool econômico 1L", "cat": "Limpeza", "src": "images/produto_021.jpg"}, {"name": "Sacola plástica alça camiseta azul", "cat": "Descartáveis/EPI", "src": "images/produto_022.jpg"}, {"name": "Sacola plástica Totalplast (caixa 400un)", "cat": "Descartáveis/EPI", "src": "images/produto_023.jpg"}, {"name": "Sacola plástica alça branca", "cat": "Descartáveis/EPI", "src": "images/produto_024.jpg"}, {"name": "Kit festa sortido (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_025.jpg"}, {"name": "Saco plástico transparente 30x40cm", "cat": "Descartáveis/EPI", "src": "images/produto_026.jpg"}, {"name": "Vela chuva de prata (kit festa)", "cat": "Descartáveis/EPI", "src": "images/produto_027.jpg"}, {"name": "Copo descartável com canudo - Cristalcopo", "cat": "Descartáveis/EPI", "src": "images/produto_028.jpg"}, {"name": "Copo PP Ultra (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_029.jpg"}, {"name": "Copo PP Ultra (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_030.jpg"}, {"name": "Colher descartável Bello Festas (50un)", "cat": "Descartáveis/EPI", "src": "images/produto_031.jpg"}, {"name": "Sacola plástica Boa branca 24x21cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_032.jpg"}, {"name": "Sacola plástica Boa rosa 28x23cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_033.jpg"}, {"name": "Sacola plástica Boa vermelha 38x32cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_034.jpg"}, {"name": "Bobina plástica transparente (rolo)", "cat": "Papéis e Filmes", "src": "images/produto_035.jpg"}, {"name": "Saco plástico transparente (rolo)", "cat": "Sacolas e Sacos", "src": "images/produto_036.jpg"}, {"name": "Bobina plástica 30x40cm - capacidade 3kg", "cat": "Descartáveis/EPI", "src": "images/produto_037.jpg"}, {"name": "Caixa de pizza kraft nº40", "cat": "Papéis e Filmes", "src": "images/produto_038.jpg"}, {"name": "Caixa de pizza kraft nº30", "cat": "Caixas", "src": "images/produto_039.jpg"}, {"name": "Caixa de pizza kraft nº35", "cat": "Caixas", "src": "images/produto_040.jpg"}, {"name": "Canudo Shake Strawplast (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_041.jpg"}, {"name": "Colher descartável branca", "cat": "Descartáveis/EPI", "src": "images/produto_044.jpg"}, {"name": "Colher sobremesa descartável Strawplast (50un)", "cat": "Descartáveis/EPI", "src": "images/produto_045.jpg"}, {"name": "Canudo flexível sachê colorido Plastsul (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_046.jpg"}, {"name": "Canudo flexível sachê colorido Plastsul (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_047.jpg"}, {"name": "Canudo + copo 50ml (ideal para cafezinho)", "cat": "Copos", "src": "images/produto_048.jpg"}, {"name": "Copo descartável PP Ultra 50ml (caixa)", "cat": "Copos", "src": "images/produto_049.jpg"}, {"name": "Copo descartável PP Ultra 440ml", "cat": "Copos", "src": "images/produto_050.jpg"}, {"name": "Caixa com potes plásticos redondos p/ bolo", "cat": "Descartáveis/EPI", "src": "images/produto_051.jpg"}, {"name": "Caixa com potes redondos c/ tampa p/ bolo", "cat": "Descartáveis/EPI", "src": "images/produto_052.jpg"}, {"name": "Rolo de folha de alumínio Wyda 45cmx7,5m (25un)", "cat": "Caixas", "src": "images/produto_053.jpg"}, {"name": "Álcool/detergente Rondan (caixa 3un)", "cat": "Caixas", "src": "images/produto_054.jpg"}, {"name": "Rolo de folha de alumínio Wyda 45cmx4,0m (25un)", "cat": "Caixas", "src": "images/produto_055.jpg"}, {"name": "Saco plástico transparente (pacote)", "cat": "Sacolas e Sacos", "src": "images/produto_056.jpg"}, {"name": "Saco plástico transparente (pacote)", "cat": "Sacolas e Sacos", "src": "images/produto_057.jpg"}, {"name": "Caixa Packform com tampa redonda p/ bolo", "cat": "Potes", "src": "images/produto_058.jpg"}, {"name": "Canudo Shake Strawplast (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_059.jpg"}, {"name": "Saco plástico transparente (pacote pequeno)", "cat": "Sacolas e Sacos", "src": "images/produto_060.jpg"}, {"name": "Saco plástico transparente 40x60cm", "cat": "Sacolas e Sacos", "src": "images/produto_061.jpg"}, {"name": "Touca descartável sanfonada (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_062.jpg"}, {"name": "Prato de papel descartável ondulado (100un)", "cat": "Papéis e Filmes", "src": "images/produto_063.jpg"}, {"name": "Marmitex/pote plástico com tampa - caixa Bipack", "cat": "Potes", "src": "images/produto_064.jpg"}, {"name": "Filme PVC (kit rolos) - Extra", "cat": "Papéis e Filmes", "src": "images/produto_065.jpg"}, {"name": "Saco plástico transparente 15x30cm", "cat": "Sacolas e Sacos", "src": "images/produto_066.jpg"}, {"name": "Marmitex isopor redondo com tampa", "cat": "Potes", "src": "images/produto_067.jpg"}, {"name": "Saco plástico transparente 25x35cm", "cat": "Sacolas e Sacos", "src": "images/produto_068.jpg"}, {"name": "Lona plástica azul (fardo)", "cat": "Sacolas e Sacos", "src": "images/produto_069.jpg"}, {"name": "Mexedor de café Plastilânia (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_070.jpg"}, {"name": "Filme PVC transparente 28cmx30m", "cat": "Descartáveis/EPI", "src": "images/produto_071.jpg"}, {"name": "Saco plástico transparente 17x35cm (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_072.jpg"}, {"name": "Saco plástico Altaplast 38x48cm (fardo)", "cat": "Descartáveis/EPI", "src": "images/produto_073.jpg"}, {"name": "Saco plástico transparente 35x50cm", "cat": "Descartáveis/EPI", "src": "images/produto_075.jpg"}, {"name": "Sacola plástica branca 29x29cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_076.jpg"}, {"name": "Protetor de fogão Boreda (kit 12un)", "cat": "Descartáveis/EPI", "src": "images/produto_077.jpg"}, {"name": "Marmitex isopor redondo com tampa (2un)", "cat": "Descartáveis/EPI", "src": "images/produto_078.jpg"}, {"name": "Filme PVC 15 metros", "cat": "Papéis e Filmes", "src": "images/produto_079.jpg"}, {"name": "Filme PVC (caixa com 4 pacotes)", "cat": "Papéis e Filmes", "src": "images/produto_080.jpg"}, {"name": "Filme PVC Tawcoplast (uso alimentício)", "cat": "Papéis e Filmes", "src": "images/produto_081.jpg"}, {"name": "Papel alumínio Boreda", "cat": "Papéis e Filmes", "src": "images/produto_082.jpg"}, {"name": "Copo descartável com canudo Fonplast (kit)", "cat": "Descartáveis/EPI", "src": "images/produto_083.jpg"}, {"name": "Copo descartável Fonplast (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_084.jpg"}, {"name": "Marmitex isopor redondo com tampa", "cat": "Descartáveis/EPI", "src": "images/produto_085.jpg"}, {"name": "Filme PVC bobina (kit 2 rolos)", "cat": "Descartáveis/EPI", "src": "images/produto_086.jpg"}, {"name": "Guardanapo de papel Girassol (caixa)", "cat": "Caixas", "src": "images/produto_087.jpg"}, {"name": "Guardanapo de papel Girassol (pacote)", "cat": "Papéis e Filmes", "src": "images/produto_088.jpg"}, {"name": "Guardanapo de papel Light Girassol (120un)", "cat": "Papéis e Filmes", "src": "images/produto_089.jpg"}, {"name": "Sacola plástica alça camiseta branca", "cat": "Descartáveis/EPI", "src": "images/produto_090.jpg"}, {"name": "Filme PVC 30m - Isofilmes", "cat": "Descartáveis/EPI", "src": "images/produto_091.jpg"}, {"name": "Sacola plástica Boa branca 24x21cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_092.jpg"}, {"name": "Sacola plástica Boreda branca 29x29cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_093.jpg"}, {"name": "Sacola plástica Boa rosa 28x23cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_094.jpg"}, {"name": "Talher descartável Plazapel (kit 50un)", "cat": "Descartáveis/EPI", "src": "images/produto_095.jpg"}, {"name": "Sacola plástica amarela Libreplast 25x35cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_096.jpg"}, {"name": "Marmitex de alumínio térmica (caixa T9)", "cat": "Descartáveis/EPI", "src": "images/produto_097.jpg"}, {"name": "Filme PVC dourado (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_098.jpg"}, {"name": "Sacola plástica amarela Libreplast 25x35cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_099.jpg"}, {"name": "Luva de látex com pó Inoven (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_101.jpg"}, {"name": "Luva nitrílica/vinil Inoven (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_102.jpg"}, {"name": "Marmitex plástico com tampa Prafesta (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_103.jpg"}, {"name": "Marmitex plástico redondo com tampa", "cat": "Marmitex", "src": "images/produto_104.jpg"}, {"name": "Canudo biodegradável Plastsul (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_105.jpg"}, {"name": "Sacola plástica alça camiseta branca", "cat": "Descartáveis/EPI", "src": "images/produto_106.jpg"}, {"name": "Bobina picotada Estrela 30x40cm", "cat": "Descartáveis/EPI", "src": "images/produto_107.jpg"}, {"name": "Prato descartável Fonplast (kit com sacola)", "cat": "Descartáveis/EPI", "src": "images/produto_108.jpg"}, {"name": "Bandeja/caixa de papelão para transporte", "cat": "Descartáveis/EPI", "src": "images/produto_109.jpg"}, {"name": "Prato descartável fundo nº12 Ultra Copos (caixa 1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_110.jpg"}, {"name": "Prato descartável Cristalcopo (kit)", "cat": "Descartáveis/EPI", "src": "images/produto_111.jpg"}, {"name": "Marmitex plástico preto", "cat": "Descartáveis/EPI", "src": "images/produto_112.jpg"}, {"name": "Canudo tradicional Strawplast (caixa 100un)", "cat": "Descartáveis/EPI", "src": "images/produto_113.jpg"}, {"name": "Canudo tradicional Strawplast (caixa 2000un)", "cat": "Descartáveis/EPI", "src": "images/produto_114.jpg"}, {"name": "Sacola plástica branca Altaplast 50x60cm", "cat": "Descartáveis/EPI", "src": "images/produto_115.jpg"}, {"name": "Caixa Orleplast", "cat": "Descartáveis/EPI", "src": "images/produto_116.jpg"}, {"name": "Marmitex térmica de alumínio (caixa T120)", "cat": "Descartáveis/EPI", "src": "images/produto_117.jpg"}, {"name": "Saco plástico BD 0,06mm 25x35cm - 1kg", "cat": "Descartáveis/EPI", "src": "images/produto_118.jpg"}, {"name": "Saco plástico transparente 15x30cm (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_119.jpg"}, {"name": "Saco plástico transparente 17x35cm (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_120.jpg"}, {"name": "Saco plástico transparente (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_121.jpg"}, {"name": "Saco plástico transparente (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_122.jpg"}, {"name": "Palito de bambu Talge (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_123.jpg"}, {"name": "Palito de bambu Talge (caixa 1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_124.jpg"}, {"name": "Vela de aniversário chuva de prata (kit colorido)", "cat": "Descartáveis/EPI", "src": "images/produto_125.jpg"}, {"name": "Papel kraft/embalagem pardo", "cat": "Descartáveis/EPI", "src": "images/produto_126.jpg"}, {"name": "Copo descartável PP Ultra (150/180/200ml)", "cat": "Descartáveis/EPI", "src": "images/produto_127.jpg"}, {"name": "Guardanapo/toalha de papel Plaszom (kit)", "cat": "Descartáveis/EPI", "src": "images/produto_128.jpg"}, {"name": "Copo descartável Cristalcopo (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_129.jpg"}, {"name": "Copo descartável Cristalcopo (rolo com tampa)", "cat": "Descartáveis/EPI", "src": "images/produto_130.jpg"}, {"name": "Tubo/canudo decorado prateado", "cat": "Descartáveis/EPI", "src": "images/produto_131.jpg"}, {"name": "Bandeja de isopor retangular", "cat": "Descartáveis/EPI", "src": "images/produto_132.jpg"}, {"name": "Copo descartável Fonplast (rolo)", "cat": "Descartáveis/EPI", "src": "images/produto_133.jpg"}, {"name": "Caixa de pizza octogonal Conpel", "cat": "Descartáveis/EPI", "src": "images/produto_134.jpg"}, {"name": "Prato de alumínio descartável Boreda nº5", "cat": "Descartáveis/EPI", "src": "images/produto_135.jpg"}, {"name": "Sacola plástica rosa Libreplast (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_136.jpg"}, {"name": "Bobina plástica (rolo grande)", "cat": "Descartáveis/EPI", "src": "images/produto_137.jpg"}, {"name": "Sacola plástica transparente com alça (kit)", "cat": "Descartáveis/EPI", "src": "images/produto_138.jpg"}, {"name": "Sacola plástica alça branca (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_139.jpg"}, {"name": "Colher para sorvete/açaí rosa (7,5cm)", "cat": "Descartáveis/EPI", "src": "images/produto_140.jpg"}, {"name": "Papel toalha interfolhado Naturalle", "cat": "Papéis e Filmes", "src": "images/produto_141.jpg"}, {"name": "Papel filme/embrulho", "cat": "Descartáveis/EPI", "src": "images/produto_142.jpg"}, {"name": "Prato descartável PS branco (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_143.jpg"}, {"name": "Prato fundo descartável Ultra PS (10un)", "cat": "Descartáveis/EPI", "src": "images/produto_144.jpg"}, {"name": "Prato descartável Fonplast (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_145.jpg"}, {"name": "Prato raso descartável Minaplast 21cm (10un)", "cat": "Descartáveis/EPI", "src": "images/produto_146.jpg"}, {"name": "Prato descartável Cristalcopo (pacote 10un)", "cat": "Copos", "src": "images/produto_147.jpg"}, {"name": "Filme PVC 100m", "cat": "Papéis e Filmes", "src": "images/produto_148.jpg"}, {"name": "Filme PVC Ultraplast (caixa)", "cat": "Papéis e Filmes", "src": "images/produto_149.jpg"}, {"name": "Filme PVC Ultraplast (rolo dourado)", "cat": "Papéis e Filmes", "src": "images/produto_150.jpg"}, {"name": "Filme PVC bobina dourada", "cat": "Papéis e Filmes", "src": "images/produto_151.jpg"}, {"name": "Filme PVC transparente G-Util (caixa 100m)", "cat": "Papéis e Filmes", "src": "images/produto_152.jpg"}, {"name": "Marmitex isopor com tampa (quentinha)", "cat": "Descartáveis/EPI", "src": "images/produto_153.jpg"}, {"name": "Guardanapo de papel Girassol (pacote)", "cat": "Descartáveis/EPI", "src": "images/produto_154.jpg"}, {"name": "Colher descartável roxa (kit 5un)", "cat": "Descartáveis/EPI", "src": "images/produto_155.jpg"}, {"name": "Guardanapo de papel branco (pacote)", "cat": "Sacolas e Sacos", "src": "images/produto_156.jpg"}, {"name": "Saco para açaí/sorvete SegSpPlast (rolo)", "cat": "Sacolas e Sacos", "src": "images/produto_157.jpg"}, {"name": "Saco plástico transparente (pacote grande)", "cat": "Sacolas e Sacos", "src": "images/produto_158.jpg"}, {"name": "Colher para sobremesa Plazapel (kit 50un)", "cat": "Descartáveis/EPI", "src": "images/produto_159.jpg"}, {"name": "Marmitex plástico com tampa Bipack (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_160.jpg"}, {"name": "Canudo flexível shake It's Bio (biodegradável)", "cat": "Descartáveis/EPI", "src": "images/produto_161.jpg"}, {"name": "Papel alumínio Suprático 7,5m", "cat": "Descartáveis/EPI", "src": "images/produto_162.jpg"}, {"name": "Prato descartável PS Totalplast (caixa)", "cat": "Descartáveis/EPI", "src": "images/produto_163.jpg"}, {"name": "Touca descartável Inoven (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_164.jpg"}, {"name": "Touca descartável Talge (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_165.jpg"}, {"name": "Canudo Ultra Canudos infantil (100un)", "cat": "Descartáveis/EPI", "src": "images/produto_166.jpg"}, {"name": "Papel alumínio (rolo com copo)", "cat": "Descartáveis/EPI", "src": "images/produto_167.jpg"}, {"name": "Touca descartável preta (sanfonada)", "cat": "Descartáveis/EPI", "src": "images/produto_168.jpg"}, {"name": "Sacola plástica Boa rosa 28x23cm (1000un)", "cat": "Descartáveis/EPI", "src": "images/produto_170.jpg"}, {"name": "Papel alumínio Wyda 4m", "cat": "Descartáveis/EPI", "src": "images/produto_174.jpg"}, {"name": "Papel alumínio Wyda 7,5m", "cat": "Descartáveis/EPI", "src": "images/produto_175.jpg"}];
-let currentCat='Todos', query='';
-const grid=document.getElementById('grid'), cats=document.getElementById('cats'), search=document.getElementById('search');
-const categories = ["Todos", "Caixas", "Copos", "Descartáveis/EPI", "Limpeza", "Marmitex", "Papéis e Filmes", "Potes", "Sacolas e Sacos"];
-cats.innerHTML=categories.map(c=>`<button class="${c==='Todos'?'active':''}" onclick="setCat('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
-function setCat(c){currentCat=c;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.textContent===c));render()}
-search.addEventListener('input',e=>{query=e.target.value.toLowerCase();render()});
-function render(){const arr=products.filter(p=>(currentCat==='Todos'||p.cat===currentCat)&&(!query||p.name.toLowerCase().includes(query)||p.cat.toLowerCase().includes(query)));grid.innerHTML=arr.map(p=>`<article class="card"><img src="${p.src}" alt="${p.name}" loading="lazy" onclick="openModal(this.src)"><div class="name">${p.name}</div><div class="cat">${p.cat}</div></article>`).join('');document.getElementById('empty').style.display=arr.length?'none':'block'}
-render();
+<div id="status" class="status">Carregando produtos...</div>
+<div id="grid"></div>
 
-let scale=1, tx=0, ty=0, dragging=false, startX=0,startY=0;
-const modal=document.getElementById('modal'), big=document.getElementById('big');
-function openModal(src){big.src=src;scale=1;tx=0;ty=0;update();modal.style.display='block'}
-function closeModal(){modal.style.display='none'}
-function update(){big.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`}
-function changeZoom(v){scale=Math.max(.6,Math.min(5,scale+v));update()}
-function resetZoom(){scale=1;tx=0;ty=0;update()}
-big.addEventListener('wheel',e=>{e.preventDefault();changeZoom(e.deltaY<0?.2:-.2)},{passive:false});
-big.addEventListener('pointerdown',e=>{dragging=true;startX=e.clientX-tx;startY=e.clientY-ty;big.setPointerCapture(e.pointerId)});
-big.addEventListener('pointermove',e=>{if(!dragging)return;tx=e.clientX-startX;ty=e.clientY-ty;update()});
-big.addEventListener('pointerup',()=>dragging=false);
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+<button id="fabNovo" class="btn-primary">+ Novo produto</button>
+
+<!-- Modal Login -->
+<div class="overlay" id="overlayLogin">
+  <div class="modal">
+    <h2>Login do administrador</h2>
+    <input type="email" id="loginEmail" placeholder="E-mail">
+    <input type="password" id="loginSenha" placeholder="Senha">
+    <div id="loginErro"></div>
+    <div class="row">
+      <button class="btn-ghost" id="cancelarLogin">Cancelar</button>
+      <button class="btn-primary" id="confirmarLogin">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Produto -->
+<div class="overlay" id="overlayProduto">
+  <div class="modal modal-produto">
+    <h2 id="tituloModalProduto">Novo produto</h2>
+    <input type="hidden" id="produtoId">
+    <label>Nome</label>
+    <input type="text" id="pNome" placeholder="Nome do produto">
+    <label>Preço (número, ex: 49.90)</label>
+    <input type="number" step="0.01" id="pPreco" placeholder="0.00">
+    <label>URL da imagem</label>
+    <input type="text" id="pImagem" placeholder="https://...">
+    <label>Descrição</label>
+    <textarea id="pDescricao" placeholder="Descrição do produto"></textarea>
+    <div class="row">
+      <button class="btn-ghost" id="cancelarProduto">Cancelar</button>
+      <button class="btn-primary" id="salvarProduto">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK (v10, modular via CDN com import map) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, onSnapshot, addDoc, updateDoc,
+  deleteDoc, doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// >>> COLE AQUI a config do seu projeto Firebase (Configurações do projeto > Config do SDK) <<<
+const firebaseConfig = {
+  apiKey: "AIzaSyAnL0aBzTu_9pUIDcilDm12Vo2eQwiOpVc",
+  authDomain: "catalogo-fb-embalagens.firebaseapp.com",
+  projectId: "catalogo-fb-embalagens",
+  storageBucket: "catalogo-fb-embalagens.firebasestorage.app",
+  messagingSenderId: "817675171881",
+  appId: "1:817675171881:web:64451ddf8b0689f5b04438"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const grid = document.getElementById('grid');
+const statusEl = document.getElementById('status');
+const btnLogin = document.getElementById('btnLogin');
+const btnLogout = document.getElementById('btnLogout');
+const fabNovo = document.getElementById('fabNovo');
+
+let usuarioLogado = null;
+let produtosCache = [];
+
+// ---------- AUTENTICAÇÃO ----------
+onAuthStateChanged(auth, (user) => {
+  usuarioLogado = user;
+  btnLogin.style.display = user ? 'none' : 'inline-block';
+  btnLogout.style.display = user ? 'inline-block' : 'none';
+  fabNovo.style.display = user ? 'block' : 'none';
+  renderizar(); // re-renderiza pra mostrar/esconder botões editar/excluir
+});
+
+document.getElementById('btnLogin').onclick = () => {
+  document.getElementById('loginErro').textContent = '';
+  document.getElementById('overlayLogin').classList.add('show');
+};
+document.getElementById('cancelarLogin').onclick = () => {
+  document.getElementById('overlayLogin').classList.remove('show');
+};
+document.getElementById('confirmarLogin').onclick = async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+    document.getElementById('overlayLogin').classList.remove('show');
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginSenha').value = '';
+  } catch (e) {
+    document.getElementById('loginErro').textContent = 'E-mail ou senha inválidos.';
+  }
+};
+btnLogout.onclick = () => signOut(auth);
+
+// ---------- LEITURA EM TEMPO REAL ----------
+const produtosRef = collection(db, 'produtos');
+onSnapshot(produtosRef, (snapshot) => {
+  produtosCache = [];
+  snapshot.forEach(docSnap => {
+    produtosCache.push({ id: docSnap.id, ...docSnap.data() });
+  });
+  statusEl.style.display = 'none';
+  renderizar();
+}, (erro) => {
+  statusEl.textContent = 'Erro ao carregar: ' + erro.message;
+});
+
+function renderizar() {
+  grid.innerHTML = '';
+  if (produtosCache.length === 0) {
+    grid.innerHTML = '<div id="vazio">Nenhum produto cadastrado ainda.</div>';
+    return;
+  }
+  produtosCache.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const precoFmt = (p.preco !== undefined && p.preco !== null)
+      ? Number(p.preco).toLocaleString('pt-BR', {style:'currency', currency:'BRL'})
+      : '';
+    card.innerHTML = `
+      <img src="${p.imagem || 'https://via.placeholder.com/400x300?text=Sem+imagem'}" alt="${p.nome || ''}">
+      <div class="card-body">
+        <h3>${p.nome || '(sem nome)'}</h3>
+        <div class="preco">${precoFmt}</div>
+        <p>${p.descricao || ''}</p>
+      </div>
+      ${usuarioLogado ? `
+      <div class="card-actions">
+        <button class="btn-ghost" onclick="window.editarProduto('${p.id}')">Editar</button>
+        <button class="btn-danger" onclick="window.excluirProduto('${p.id}')">Excluir</button>
+      </div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ---------- CRUD PRODUTO ----------
+const overlayProduto = document.getElementById('overlayProduto');
+fabNovo.onclick = () => abrirModalProduto();
+
+function abrirModalProduto(produto=null) {
+  document.getElementById('tituloModalProduto').textContent = produto ? 'Editar produto' : 'Novo produto';
+  document.getElementById('produtoId').value = produto ? produto.id : '';
+  document.getElementById('pNome').value = produto ? (produto.nome || '') : '';
+  document.getElementById('pPreco').value = produto ? (produto.preco ?? '') : '';
+  document.getElementById('pImagem').value = produto ? (produto.imagem || '') : '';
+  document.getElementById('pDescricao').value = produto ? (produto.descricao || '') : '';
+  overlayProduto.classList.add('show');
+}
+document.getElementById('cancelarProduto').onclick = () => overlayProduto.classList.remove('show');
+
+document.getElementById('salvarProduto').onclick = async () => {
+  const id = document.getElementById('produtoId').value;
+  const dados = {
+    nome: document.getElementById('pNome').value.trim(),
+    preco: parseFloat(document.getElementById('pPreco').value) || 0,
+    imagem: document.getElementById('pImagem').value.trim(),
+    descricao: document.getElementById('pDescricao').value.trim()
+  };
+  if (!dados.nome) { alert('Digite o nome do produto.'); return; }
+  try {
+    if (id) {
+      await updateDoc(doc(db, 'produtos', id), dados);
+    } else {
+      await addDoc(produtosRef, dados);
+    }
+    overlayProduto.classList.remove('show');
+  } catch (e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+};
+
+window.editarProduto = (id) => {
+  const p = produtosCache.find(x => x.id === id);
+  if (p) abrirModalProduto(p);
+};
+window.excluirProduto = async (id) => {
+  if (!confirm('Excluir este produto?')) return;
+  try {
+    await deleteDoc(doc(db, 'produtos', id));
+  } catch (e) {
+    alert('Erro ao excluir: ' + e.message);
+  }
+};
 </script>
 </body>
 </html>
