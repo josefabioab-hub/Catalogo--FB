@@ -28,6 +28,10 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 .admin-actions{display:flex;gap:6px;margin-top:6px}
 .admin-actions button{flex:1;font-size:12px;padding:6px;border-radius:8px;border:1px solid #d8dee8;background:#fff;cursor:pointer}
 .admin-actions .del{color:#b3413a;border-color:#b3413a}
+.whats-btn{width:100%;margin-top:8px;background:#25D366;color:#fff;border:0;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.whats-btn:hover{background:#1ebe5a}
+.vendedor-opcao{display:block;width:100%;text-align:left;background:#f4f6f9;border:1px solid #d8dee8;border-radius:10px;padding:12px 14px;margin:8px 0;cursor:pointer;font-size:14px;font-weight:600;color:#222;text-decoration:none}
+.vendedor-opcao:hover{background:#e8ebf0}
 #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:20;touch-action:none}
 #big{position:absolute;left:50%;top:50%;max-width:92vw;max-height:82vh;transform:translate(-50%,-50%);object-fit:contain;touch-action:none;user-select:none}
 .close{position:absolute;right:14px;top:5px;color:#fff;font-size:42px;z-index:30;line-height:1;cursor:pointer}
@@ -97,6 +101,17 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
   </div>
 </div>
 
+<!-- Modal Vendedor (WhatsApp) -->
+<div class="overlay" id="overlayVendedor">
+  <div class="modalbox">
+    <h2>Falar com um vendedor</h2>
+    <div id="listaVendedores"></div>
+    <div class="row">
+      <button class="no" id="cancelarVendedor">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -125,6 +140,11 @@ const SEED_PRODUCTS = [{"name": "Saco plástico transparente 28x40cm", "cat": "D
 
 const categories = ["Todos", "Caixas", "Copos", "Descartáveis/EPI", "Limpeza", "Marmitex", "Papéis e Filmes", "Potes", "Sacolas e Sacos"];
 
+const VENDEDORES = [
+  { nome: "Charles", numero: "5588993450098" },
+  { nome: "Ranyelly", numero: "5588997261573" }
+];
+
 let currentCat='Todos', query='';
 let usuarioLogado = null;
 let produtos = [];
@@ -138,18 +158,25 @@ window.setCat=function(c){currentCat=c;document.querySelectorAll('nav button').f
 search.addEventListener('input',e=>{query=e.target.value.toLowerCase();render()});
 
 function render(){
-  const arr=produtos.filter(p=>(currentCat==='Todos'||p.cat===currentCat)&&(!query||p.name.toLowerCase().includes(query)||p.cat.toLowerCase().includes(query)));
-  grid.innerHTML=arr.map(p=>`
+  const arr=produtos.filter(p=>{
+    const nome=(p.name||'').toLowerCase(), cat=p.cat||'';
+    return (currentCat==='Todos'||cat===currentCat)&&(!query||nome.includes(query)||cat.toLowerCase().includes(query));
+  });
+  grid.innerHTML=arr.map(p=>{
+    const nome=p.name||'(sem nome)', cat=p.cat||'', src=p.src||'';
+    return `
     <article class="card">
-      <img src="${p.src}" alt="${p.name}" loading="lazy" onclick="openModal('${p.src.replace(/'/g,"\\'")}')">
-      <div class="name">${p.name}</div>
-      <div class="cat">${p.cat}</div>
+      <img src="${src}" alt="${nome}" loading="lazy" onclick="openModal('${src.replace(/'/g,"\\'")}')">
+      <div class="name">${nome}</div>
+      <div class="cat">${cat}</div>
+      <button class="whats-btn" onclick="abrirVendedores('${nome.replace(/'/g,"\\'")}')">💬 Falar no WhatsApp</button>
       ${usuarioLogado ? `<div class="admin-actions">
         <button onclick="editarProduto('${p.id}')">Editar</button>
         <button class="del" onclick="excluirProduto('${p.id}')">Excluir</button>
       </div>` : ''}
     </article>
-  `).join('');
+  `;
+  }).join('');
   document.getElementById('empty').style.display=arr.length?'none':'block';
 }
 
@@ -246,6 +273,18 @@ fabImportar.onclick=async()=>{
     fabImportar.textContent='Importar 166 produtos';
   }
 };
+
+// ---------- WHATSAPP ----------
+const overlayVendedor=document.getElementById('overlayVendedor');
+const listaVendedores=document.getElementById('listaVendedores');
+window.abrirVendedores=function(nomeProduto){
+  listaVendedores.innerHTML = VENDEDORES.map(v=>{
+    const texto = encodeURIComponent(`Olá, ${v.nome}! Tenho interesse no produto: ${nomeProduto}`);
+    return `<a class="vendedor-opcao" target="_blank" href="https://wa.me/${v.numero}?text=${texto}">${v.nome}</a>`;
+  }).join('');
+  overlayVendedor.classList.add('show');
+};
+document.getElementById('cancelarVendedor').onclick=()=>overlayVendedor.classList.remove('show');
 
 // ---------- MODAL DE ZOOM DE IMAGEM ----------
 let scale=1, tx=0, ty=0, dragging=false, startX=0,startY=0;
