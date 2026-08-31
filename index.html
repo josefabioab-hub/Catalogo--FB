@@ -30,6 +30,18 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 .admin-actions .del{color:#b3413a;border-color:#b3413a}
 .whats-btn{width:100%;margin-top:8px;background:#25D366;color:#fff;border:0;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .whats-btn:hover{background:#1ebe5a}
+.add-btn{width:100%;margin-top:6px;background:#fff;color:#0b4d91;border:1px solid #0b4d91;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer}
+.add-btn.in-cart{background:#0b4d91;color:#fff}
+.qty-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.qty-row button{width:28px;height:28px;border-radius:6px;border:1px solid #d8dee8;background:#fff;font-size:16px;cursor:pointer;line-height:1}
+.qty-row span{flex:1;text-align:center;font-weight:700;font-size:13px}
+#fabCarrinho{position:fixed;bottom:22px;right:22px;background:#0b4d91;color:#fff;border:0;border-radius:50px;padding:14px 20px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:20;cursor:pointer;display:none}
+.cart-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee}
+.cart-item .ci-name{flex:1;font-size:13px;font-weight:600}
+.cart-item .ci-qty{display:flex;align-items:center;gap:4px}
+.cart-item .ci-qty button{width:24px;height:24px;border-radius:6px;border:1px solid #d8dee8;background:#fff;cursor:pointer}
+.cart-item .ci-rm{color:#b3413a;background:none;border:0;cursor:pointer;font-size:18px}
+#cartEmpty{text-align:center;color:#777;padding:20px 0;font-size:13px}
 .vendedor-opcao{display:block;width:100%;text-align:left;background:#f4f6f9;border:1px solid #d8dee8;border-radius:10px;padding:12px 14px;margin:8px 0;cursor:pointer;font-size:14px;font-weight:600;color:#222;text-decoration:none}
 .vendedor-opcao:hover{background:#e8ebf0}
 #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:20;touch-action:none}
@@ -101,6 +113,8 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
   </div>
 </div>
 
+<button id="fabCarrinho">🛒 Carrinho (<span id="qtdCarrinho">0</span>)</button>
+
 <!-- Modal Vendedor (WhatsApp) -->
 <div class="overlay" id="overlayVendedor">
   <div class="modalbox">
@@ -108,6 +122,19 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
     <div id="listaVendedores"></div>
     <div class="row">
       <button class="no" id="cancelarVendedor">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Carrinho -->
+<div class="overlay" id="overlayCarrinho">
+  <div class="modalbox">
+    <h2>Seu carrinho</h2>
+    <div id="itensCarrinho"></div>
+    <div id="cartEmpty" style="display:none">Seu carrinho está vazio.</div>
+    <div class="row">
+      <button class="no" id="fecharCarrinho">Fechar</button>
+      <button class="ok" id="finalizarPedido">Finalizar pedido</button>
     </div>
   </div>
 </div>
@@ -146,6 +173,7 @@ const VENDEDORES = [
 ];
 
 let currentCat='Todos', query='';
+let carrinho = JSON.parse(localStorage.getItem('fb_carrinho') || '{}');
 let usuarioLogado = null;
 let produtos = [];
 
@@ -164,11 +192,20 @@ function render(){
   });
   grid.innerHTML=arr.map(p=>{
     const nome=p.name||'(sem nome)', cat=p.cat||'', src=p.src||'';
+    const qtdNoCarrinho = carrinho[p.id] ? carrinho[p.id].qty : 0;
     return `
     <article class="card">
       <img src="${src}" alt="${nome}" loading="lazy" onclick="openModal('${src.replace(/'/g,"\\'")}')">
       <div class="name">${nome}</div>
       <div class="cat">${cat}</div>
+      ${qtdNoCarrinho===0
+        ? `<button class="add-btn" onclick="adicionarCarrinho('${p.id}','${nome.replace(/'/g,"\\'")}')">🛒 Adicionar</button>`
+        : `<div class="qty-row">
+            <button onclick="mudarQtd('${p.id}',-1)">−</button>
+            <span>${qtdNoCarrinho} no carrinho</span>
+            <button onclick="mudarQtd('${p.id}',1)">+</button>
+          </div>`
+      }
       <button class="whats-btn" onclick="abrirVendedores('${nome.replace(/'/g,"\\'")}')">💬 Falar no WhatsApp</button>
       ${usuarioLogado ? `<div class="admin-actions">
         <button onclick="editarProduto('${p.id}')">Editar</button>
@@ -274,15 +311,83 @@ fabImportar.onclick=async()=>{
   }
 };
 
+// ---------- CARRINHO ----------
+const fabCarrinho=document.getElementById('fabCarrinho');
+const overlayCarrinho=document.getElementById('overlayCarrinho');
+const itensCarrinhoEl=document.getElementById('itensCarrinho');
+const cartEmptyEl=document.getElementById('cartEmpty');
+const qtdCarrinhoEl=document.getElementById('qtdCarrinho');
+
+function salvarCarrinho(){
+  localStorage.setItem('fb_carrinho', JSON.stringify(carrinho));
+  atualizarBadgeCarrinho();
+}
+function atualizarBadgeCarrinho(){
+  const total = Object.values(carrinho).reduce((s,i)=>s+i.qty,0);
+  qtdCarrinhoEl.textContent = total;
+  fabCarrinho.style.display = total>0 ? 'block' : 'none';
+}
+window.adicionarCarrinho=function(id,nome){
+  if(!carrinho[id]) carrinho[id]={nome,qty:0};
+  carrinho[id].qty++;
+  salvarCarrinho();
+  render();
+};
+window.mudarQtd=function(id,delta){
+  if(!carrinho[id])return;
+  carrinho[id].qty += delta;
+  if(carrinho[id].qty<=0) delete carrinho[id];
+  salvarCarrinho();
+  render();
+  renderCarrinhoModal();
+};
+function renderCarrinhoModal(){
+  const ids = Object.keys(carrinho);
+  if(ids.length===0){
+    itensCarrinhoEl.innerHTML='';
+    cartEmptyEl.style.display='block';
+    return;
+  }
+  cartEmptyEl.style.display='none';
+  itensCarrinhoEl.innerHTML = ids.map(id=>{
+    const it = carrinho[id];
+    return `<div class="cart-item">
+      <div class="ci-name">${it.nome}</div>
+      <div class="ci-qty">
+        <button onclick="mudarQtd('${id}',-1)">−</button>
+        <span>${it.qty}</span>
+        <button onclick="mudarQtd('${id}',1)">+</button>
+      </div>
+      <button class="ci-rm" onclick="mudarQtd('${id}',-${it.qty})">×</button>
+    </div>`;
+  }).join('');
+}
+fabCarrinho.onclick=()=>{renderCarrinhoModal();overlayCarrinho.classList.add('show')};
+document.getElementById('fecharCarrinho').onclick=()=>overlayCarrinho.classList.remove('show');
+document.getElementById('finalizarPedido').onclick=()=>{
+  const ids=Object.keys(carrinho);
+  if(ids.length===0){alert('Seu carrinho está vazio.');return}
+  overlayCarrinho.classList.remove('show');
+  abrirVendedoresPedido();
+};
+atualizarBadgeCarrinho();
+
 // ---------- WHATSAPP ----------
 const overlayVendedor=document.getElementById('overlayVendedor');
 const listaVendedores=document.getElementById('listaVendedores');
-window.abrirVendedores=function(nomeProduto){
-  listaVendedores.innerHTML = VENDEDORES.map(v=>{
-    const texto = encodeURIComponent(`Olá, ${v.nome}! Tenho interesse no produto: ${nomeProduto}`);
-    return `<a class="vendedor-opcao" target="_blank" href="https://wa.me/${v.numero}?text=${texto}">${v.nome}</a>`;
-  }).join('');
+function montarLinksVendedores(mensagem){
+  const texto = encodeURIComponent(mensagem);
+  listaVendedores.innerHTML = VENDEDORES.map(v=>
+    `<a class="vendedor-opcao" target="_blank" href="https://wa.me/${v.numero}?text=${texto}">${v.nome}</a>`
+  ).join('');
   overlayVendedor.classList.add('show');
+}
+window.abrirVendedores=function(nomeProduto){
+  montarLinksVendedores(`Olá! Tenho interesse no produto: ${nomeProduto}`);
+};
+window.abrirVendedoresPedido=function(){
+  const linhas = Object.values(carrinho).map(it=>`• ${it.qty}x ${it.nome}`).join('\n');
+  montarLinksVendedores(`Olá! Gostaria de fazer um pedido:\n${linhas}`);
 };
 document.getElementById('cancelarVendedor').onclick=()=>overlayVendedor.classList.remove('show');
 
