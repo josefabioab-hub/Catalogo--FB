@@ -10,7 +10,8 @@
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6f9;color:#222}
 header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 12px}
 .top{max-width:1100px;margin:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.logo{font-weight:800;color:#0b4d91;font-size:20px}
+.logo{display:flex;align-items:center}
+.logo img{height:40px;width:auto;display:block}
 .search{flex:1;padding:12px 14px;border:1px solid #d8dee8;border-radius:12px;font-size:16px;outline:none;min-width:120px}
 .authbtn{border:1px solid #0b4d91;background:#fff;color:#0b4d91;border-radius:999px;padding:9px 14px;font-weight:700;cursor:pointer;white-space:nowrap}
 .authbtn.solid{background:#0b4d91;color:#fff}
@@ -57,6 +58,13 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 .modalbox{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:360px;max-height:90vh;overflow:auto}
 .modalbox h2{margin-top:0;font-size:1.1rem;color:#0b4d91}
 .modalbox input,.modalbox select,.modalbox textarea{width:100%;padding:10px;margin:7px 0;border:1px solid #d8dee8;border-radius:8px;font-size:.9rem;font-family:inherit}
+.modalbox textarea{min-height:70px;resize:vertical}
+.name-clicavel{cursor:pointer}
+.name-clicavel:hover{text-decoration:underline}
+.detalhe-img{width:100%;height:180px;object-fit:contain;background:#fafafa;border-radius:10px;margin-bottom:10px}
+.detalhe-cat{font-size:12px;color:#777;margin-bottom:8px}
+.detalhe-desc{font-size:14px;line-height:1.5;color:#333;white-space:pre-wrap}
+.detalhe-desc.vazio{color:#999;font-style:italic}
 .modalbox .row{display:flex;gap:8px;margin-top:10px}
 .modalbox .row button{flex:1;padding:10px;border-radius:8px;border:0;font-weight:700;cursor:pointer}
 .modalbox .row .ok{background:#0b4d91;color:#fff}
@@ -70,7 +78,7 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 <body>
 <header>
 <div class="top">
-  <div class="logo">FB Embalagens</div>
+  <div class="logo"><img src="images/logo.png" alt="FB Embalagens"></div>
   <input id="search" class="search" placeholder="🔍 Pesquisar produto...">
   <button id="btnLogin" class="authbtn">Entrar (admin)</button>
   <button id="btnLogout" class="authbtn solid" style="display:none">Sair</button>
@@ -106,6 +114,7 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
     <input type="text" id="pNome" placeholder="Nome do produto">
     <select id="pCat"></select>
     <input type="text" id="pSrc" placeholder="images/produto_XXX.jpg ou URL da imagem">
+    <textarea id="pDescricao" placeholder="Descrição (ex: tamanhos P, M e G / cores disponíveis / detalhes do produto)"></textarea>
     <div class="row">
       <button class="no" id="cancelarProduto">Cancelar</button>
       <button class="ok" id="salvarProduto">Salvar</button>
@@ -114,6 +123,19 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 </div>
 
 <button id="fabCarrinho">🛒 Carrinho (<span id="qtdCarrinho">0</span>)</button>
+
+<!-- Modal Detalhes do Produto -->
+<div class="overlay" id="overlayDetalhe">
+  <div class="modalbox">
+    <img id="detalheImg" class="detalhe-img">
+    <h2 id="detalheNome"></h2>
+    <div class="detalhe-cat" id="detalheCat"></div>
+    <div id="detalheDesc" class="detalhe-desc"></div>
+    <div class="row">
+      <button class="no" id="fecharDetalhe">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <!-- Modal Vendedor (WhatsApp) -->
 <div class="overlay" id="overlayVendedor">
@@ -191,12 +213,12 @@ function render(){
     return (currentCat==='Todos'||cat===currentCat)&&(!query||nome.includes(query)||cat.toLowerCase().includes(query));
   });
   grid.innerHTML=arr.map(p=>{
-    const nome=p.name||'(sem nome)', cat=p.cat||'', src=p.src||'';
+    const nome=p.name||'(sem nome)', cat=p.cat||'', src=p.src||'', desc=p.descricao||'';
     const qtdNoCarrinho = carrinho[p.id] ? carrinho[p.id].qty : 0;
     return `
     <article class="card">
       <img src="${src}" alt="${nome}" loading="lazy" onclick="openModal('${src.replace(/'/g,"\\'")}')">
-      <div class="name">${nome}</div>
+      <div class="name name-clicavel" onclick="abrirDetalhe('${p.id}')">${nome}</div>
       <div class="cat">${cat}</div>
       ${qtdNoCarrinho===0
         ? `<button class="add-btn" onclick="adicionarCarrinho('${p.id}','${nome.replace(/'/g,"\\'")}')">🛒 Adicionar</button>`
@@ -261,6 +283,7 @@ function abrirModalProduto(p=null){
   document.getElementById('pNome').value = p ? p.name : '';
   pCatSelect.value = p ? p.cat : categories[1];
   document.getElementById('pSrc').value = p ? p.src : '';
+  document.getElementById('pDescricao').value = p ? (p.descricao || '') : '';
   overlayProduto.classList.add('show');
 }
 document.getElementById('cancelarProduto').onclick=()=>overlayProduto.classList.remove('show');
@@ -269,7 +292,8 @@ document.getElementById('salvarProduto').onclick=async()=>{
   const dados={
     name: document.getElementById('pNome').value.trim(),
     cat: pCatSelect.value,
-    src: document.getElementById('pSrc').value.trim()
+    src: document.getElementById('pSrc').value.trim(),
+    descricao: document.getElementById('pDescricao').value.trim()
   };
   if(!dados.name){alert('Digite o nome do produto.');return}
   try{
@@ -280,6 +304,28 @@ document.getElementById('salvarProduto').onclick=async()=>{
 };
 
 window.editarProduto=(id)=>{const p=produtos.find(x=>x.id===id);if(p)abrirModalProduto(p)};
+
+// ---------- DETALHES DO PRODUTO ----------
+const overlayDetalhe=document.getElementById('overlayDetalhe');
+window.abrirDetalhe=function(id){
+  const p=produtos.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('detalheImg').src = p.src || '';
+  document.getElementById('detalheImg').alt = p.name || '';
+  document.getElementById('detalheNome').textContent = p.name || '(sem nome)';
+  document.getElementById('detalheCat').textContent = p.cat || '';
+  const descEl = document.getElementById('detalheDesc');
+  if(p.descricao){
+    descEl.textContent = p.descricao;
+    descEl.classList.remove('vazio');
+  }else{
+    descEl.textContent = 'Sem descrição cadastrada.';
+    descEl.classList.add('vazio');
+  }
+  overlayDetalhe.classList.add('show');
+};
+document.getElementById('fecharDetalhe').onclick=()=>overlayDetalhe.classList.remove('show');
+
 window.excluirProduto=async(id)=>{
   if(!confirm('Excluir este produto?'))return;
   try{await deleteDoc(doc(db,'produtos',id))}catch(e){alert('Erro ao excluir: '+e.message)}
