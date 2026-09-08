@@ -94,7 +94,12 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 .modalbox textarea{min-height:70px;resize:vertical}
 .name-clicavel{cursor:pointer}
 .name-clicavel:hover{text-decoration:underline}
-.detalhe-img{width:100%;height:180px;object-fit:contain;background:#fafafa;border-radius:10px;margin-bottom:10px}
+.detalhe-img{width:100%;height:180px;object-fit:contain;background:#fafafa;border-radius:10px;margin-bottom:10px;cursor:zoom-in}
+.detalhe-galeria{position:relative}
+.galeria-nav{position:absolute;top:78px;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:20px;cursor:pointer;color:var(--blue);display:none;align-items:center;justify-content:center;line-height:1}
+.galeria-prev{left:6px}
+.galeria-next{right:6px}
+.galeria-contador{position:absolute;bottom:16px;right:8px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;display:none}
 .detalhe-cat{font-size:12px;color:#777;margin-bottom:8px}
 .detalhe-desc{font-size:14px;line-height:1.5;color:#333;white-space:pre-wrap}
 .detalhe-desc.vazio{color:#999;font-style:italic}
@@ -150,7 +155,10 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
     <input type="hidden" id="produtoId">
     <input type="text" id="pNome" placeholder="Nome do produto">
     <select id="pCat"></select>
-    <input type="text" id="pSrc" placeholder="images/produto_XXX.jpg ou URL da imagem">
+    <label style="font-size:.78rem;color:#6b6862;display:block;margin-top:8px">Fotos (uma por linha — a primeira é a foto principal)</label>
+    <textarea id="pFotos" placeholder="images/produto_001.jpg
+images/produto_001b.jpg
+images/produto_001c.jpg"></textarea>
     <textarea id="pDescricao" placeholder="Descrição (ex: tamanhos P, M e G / cores disponíveis / detalhes do produto)"></textarea>
     <div class="row">
       <button class="no" id="cancelarProduto">Cancelar</button>
@@ -164,7 +172,12 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
 <!-- Modal Detalhes do Produto -->
 <div class="overlay" id="overlayDetalhe">
   <div class="modalbox">
-    <img id="detalheImg" class="detalhe-img">
+    <div class="detalhe-galeria">
+      <img id="detalheImg" class="detalhe-img" onclick="zoomFotoAtual()">
+      <button id="detalhePrev" class="galeria-nav galeria-prev">‹</button>
+      <button id="detalheNext" class="galeria-nav galeria-next">›</button>
+      <div id="detalheContador" class="galeria-contador"></div>
+    </div>
     <h2 id="detalheNome"></h2>
     <div class="detalhe-cat" id="detalheCat"></div>
     <div id="detalheDesc" class="detalhe-desc"></div>
@@ -235,6 +248,13 @@ let currentCat='Todos', query='';
 let carrinho = JSON.parse(localStorage.getItem('fb_carrinho') || '{}');
 let usuarioLogado = null;
 let produtos = [];
+
+// Retorna sempre um array de fotos, mesmo para produtos antigos que só têm 'src'
+function getFotos(p){
+  if(Array.isArray(p.fotos) && p.fotos.length) return p.fotos;
+  if(p.src) return [p.src];
+  return [];
+}
 
 const grid=document.getElementById('grid'), catsEl=document.getElementById('cats'), search=document.getElementById('search');
 const btnLogin=document.getElementById('btnLogin'), btnLogout=document.getElementById('btnLogout');
@@ -319,17 +339,19 @@ function abrirModalProduto(p=null){
   document.getElementById('produtoId').value = p ? p.id : '';
   document.getElementById('pNome').value = p ? p.name : '';
   pCatSelect.value = p ? p.cat : categories[1];
-  document.getElementById('pSrc').value = p ? p.src : '';
+  document.getElementById('pFotos').value = p ? getFotos(p).join('\n') : '';
   document.getElementById('pDescricao').value = p ? (p.descricao || '') : '';
   overlayProduto.classList.add('show');
 }
 document.getElementById('cancelarProduto').onclick=()=>overlayProduto.classList.remove('show');
 document.getElementById('salvarProduto').onclick=async()=>{
   const id=document.getElementById('produtoId').value;
+  const fotos = document.getElementById('pFotos').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const dados={
     name: document.getElementById('pNome').value.trim(),
     cat: pCatSelect.value,
-    src: document.getElementById('pSrc').value.trim(),
+    src: fotos[0] || '',
+    fotos: fotos,
     descricao: document.getElementById('pDescricao').value.trim()
   };
   if(!dados.name){alert('Digite o nome do produto.');return}
@@ -344,11 +366,31 @@ window.editarProduto=(id)=>{const p=produtos.find(x=>x.id===id);if(p)abrirModalP
 
 // ---------- DETALHES DO PRODUTO ----------
 const overlayDetalhe=document.getElementById('overlayDetalhe');
+const detalheImgEl=document.getElementById('detalheImg');
+const detalhePrevBtn=document.getElementById('detalhePrev');
+const detalheNextBtn=document.getElementById('detalheNext');
+const detalheContadorEl=document.getElementById('detalheContador');
+let galeriaFotos=[], galeriaIndex=0;
+
+function renderGaleria(){
+  detalheImgEl.src = galeriaFotos[galeriaIndex] || '';
+  const multiplas = galeriaFotos.length > 1;
+  detalhePrevBtn.style.display = multiplas ? 'flex' : 'none';
+  detalheNextBtn.style.display = multiplas ? 'flex' : 'none';
+  detalheContadorEl.style.display = multiplas ? 'block' : 'none';
+  detalheContadorEl.textContent = `${galeriaIndex+1}/${galeriaFotos.length}`;
+}
+detalhePrevBtn.onclick=()=>{galeriaIndex=(galeriaIndex-1+galeriaFotos.length)%galeriaFotos.length;renderGaleria()};
+detalheNextBtn.onclick=()=>{galeriaIndex=(galeriaIndex+1)%galeriaFotos.length;renderGaleria()};
+window.zoomFotoAtual=()=>{if(galeriaFotos[galeriaIndex])openModal(galeriaFotos[galeriaIndex])};
+
 window.abrirDetalhe=function(id){
   const p=produtos.find(x=>x.id===id);
   if(!p)return;
-  document.getElementById('detalheImg').src = p.src || '';
-  document.getElementById('detalheImg').alt = p.name || '';
+  galeriaFotos = getFotos(p);
+  galeriaIndex = 0;
+  renderGaleria();
+  detalheImgEl.alt = p.name || '';
   document.getElementById('detalheNome').textContent = p.name || '(sem nome)';
   document.getElementById('detalheCat').textContent = p.cat || '';
   const descEl = document.getElementById('detalheDesc');
