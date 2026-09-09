@@ -163,10 +163,10 @@ main{max-width:1100px;margin:18px auto;padding:0 12px 90px}
     <input type="hidden" id="produtoId">
     <input type="text" id="pNome" placeholder="Nome do produto">
     <select id="pCat"></select>
-    <label style="font-size:.78rem;color:#6b6862;display:block;margin-top:8px">Fotos (uma por linha — a primeira é a foto principal)</label>
-    <textarea id="pFotos" placeholder="images/produto_001.jpg
-images/produto_001b.jpg
-images/produto_001c.jpg"></textarea>
+    <label style="font-size:.78rem;color:#6b6862;display:block;margin-top:8px">Foto 1 (principal)</label>
+    <input type="text" id="pFoto1" placeholder="images/produto_001.jpg">
+    <label style="font-size:.78rem;color:#6b6862;display:block;margin-top:8px">Foto 2 (opcional)</label>
+    <input type="text" id="pFoto2" placeholder="images/produto_001b.jpg">
     <textarea id="pDescricao" placeholder="Descrição (ex: tamanhos P, M e G / cores disponíveis / detalhes do produto)"></textarea>
     <div class="row">
       <button class="no" id="cancelarProduto">Cancelar</button>
@@ -349,14 +349,16 @@ function abrirModalProduto(p=null){
   document.getElementById('produtoId').value = p ? p.id : '';
   document.getElementById('pNome').value = p ? p.name : '';
   pCatSelect.value = p ? p.cat : categories[1];
-  document.getElementById('pFotos').value = p ? getFotos(p).join('\n') : '';
+  { const fotosExist = p ? getFotos(p) : [];
+    document.getElementById('pFoto1').value = fotosExist[0] || '';
+    document.getElementById('pFoto2').value = fotosExist[1] || ''; }
   document.getElementById('pDescricao').value = p ? (p.descricao || '') : '';
   overlayProduto.classList.add('show');
 }
 document.getElementById('cancelarProduto').onclick=()=>overlayProduto.classList.remove('show');
 document.getElementById('salvarProduto').onclick=async()=>{
   const id=document.getElementById('produtoId').value;
-  const fotos = document.getElementById('pFotos').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const fotos = [document.getElementById('pFoto1').value.trim(), document.getElementById('pFoto2').value.trim()].filter(Boolean);
   const dados={
     name: document.getElementById('pNome').value.trim(),
     cat: pCatSelect.value,
